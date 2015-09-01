@@ -388,6 +388,7 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
         List<Probe> probes = uniqueProbesPages.getPageResults();
 
         //Ross: get genes
+        //do this instead of searching by probes
         Pagination<Gene>uniqueGenePages = searchGenes(searchBean, startPageNo, -1, "geneName", "ASC");
         List<Gene> genes = uniqueGenePages.getPageResults();
         List<String> genesENSG  =  new ArrayList<String>();
