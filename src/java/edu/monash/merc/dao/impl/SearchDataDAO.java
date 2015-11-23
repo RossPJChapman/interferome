@@ -304,6 +304,10 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
                 return new Pagination<Gene>(startPageNo, recordPerPage, total, searchCount);
             }
 
+            if(recordPerPage==-2){
+                recordPerPage=total;
+            }
+
             String geneHQL = "SELECT  DISTINCT g  FROM Gene g INNER JOIN g.probe pbs WHERE pbs.probeId IN (:probes) ORDER BY g." + orderBy + " " + sortBy;
             Query geneQuery = this.session().createQuery(geneHQL);
             geneQuery.setParameterList(("probes"), probes);
@@ -386,6 +390,19 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
     public Integer[] searchSubtypes(SearchBean searchBean, int startPageNo, int recordPerPage, String orderBy, String sortBy) {
         Pagination<Probe> uniqueProbesPages = searchProbes(searchBean, startPageNo, -1, orderBy, sortBy);
         List<Probe> probes = uniqueProbesPages.getPageResults();
+
+        //Ross: get genes
+        Pagination<Gene>uniqueGenePages = searchGenes(searchBean, startPageNo, -2, "geneName", "ASC");
+        List<Gene> genes = uniqueGenePages.getPageResults();
+        List<String> genesENSG  =  new ArrayList<String>();
+
+        Iterator<Gene> geneIter=genes.iterator();
+        while(geneIter.hasNext()){
+            Gene gx = geneIter.next();
+            //System.out.println("GENE " + gx.getEnsgAccession());
+            genesENSG.add(gx.getEnsgAccession());
+        }
+
         //T1, T2, T3, T1T2, T1T3, T2T3, T1T2T3
         Integer[] types = {0, 0, 0, 0, 0, 0, 0};
         if (probes.size() > 0) {
@@ -398,7 +415,7 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
 
             //Ross code to test for fold change
 
-            String tp1 = "SELECT distinct p.probeId  FROM Data d INNER JOIN d.probe p INNER JOIN d.dataset ds INNER JOIN ds.ifnType i " +
+            /*String tp1 = "SELECT distinct p.probeId  FROM Data d INNER JOIN d.probe p INNER JOIN d.dataset ds INNER JOIN ds.ifnType i " +
                             "WHERE p.probeId IN (:probes) AND i.typeName = 'I' and (d.value >= " + upValue + " or d.value <= -" + downValue + ")";
             Query tp1Query = this.session().createQuery(tp1);
             tp1Query.setParameterList(("probes"), probes);
@@ -416,14 +433,23 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
                 Query tg1Query = this.session().createQuery(tg1);
                 tg1Query.setParameterList("t1ProbeList", t1ProbeList);
                 t1GeneList = tg1Query.list();
-            }
+            }*/
+
+
+            //Ross version to retrieve genes by gene ensg, avoiding probes.
+            List<Gene> te1GeneList = new ArrayList<Gene>();
+            String tge1 ="SELECT distinct g from Gene g INNER JOIN g.probe p INNER JOIN p.data d INNER JOIN  d.dataset ds INNER JOIN ds.ifnType i "+
+                    "WHERE g.ensgAccession IN (:genesENSG) AND i.typeName = 'I' and (d.value >= " + upValue + " or d.value <= -" + downValue + ")";
+            Query tge1Query = this.session().createQuery(tge1);
+            tge1Query.setParameterList(("genesENSG"), genesENSG);
+            te1GeneList = tge1Query.list();
 
             //Get Type 2 Probes
             //String tp2 = "SELECT distinct p.probeId  FROM Data d INNER JOIN d.probe p INNER JOIN d.dataset ds INNER JOIN ds.ifnType i " +
             //        "WHERE p.probeId IN (:probes) AND i.typeName = 'II'";
 
             //Ross code to test for fold change
-            String tp2 = "SELECT distinct p.probeId  FROM Data d INNER JOIN d.probe p INNER JOIN d.dataset ds INNER JOIN ds.ifnType i " +
+            /*String tp2 = "SELECT distinct p.probeId  FROM Data d INNER JOIN d.probe p INNER JOIN d.dataset ds INNER JOIN ds.ifnType i " +
                     "WHERE p.probeId IN (:probes) AND i.typeName = 'II' and (d.value >= " + upValue + " or d.value <= -" + downValue + ")";
             Query tp2Query = this.session().createQuery(tp2);
             tp2Query.setParameterList(("probes"), probes);
@@ -441,14 +467,23 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
                 Query tg2Query = this.session().createQuery(tg2);
                 tg2Query.setParameterList("t2ProbeList", t2ProbeList);
                 t2GeneList = tg2Query.list();
-            }
+            }*/
+
+
+            //Ross version to retrieve genes by gene ensg, avoiding probes.
+            List<Gene> te2GeneList = new ArrayList<Gene>();
+            String tge2 ="SELECT distinct g from Gene g INNER JOIN g.probe p INNER JOIN p.data d INNER JOIN  d.dataset ds INNER JOIN ds.ifnType i "+
+                    "WHERE g.ensgAccession IN (:genesENSG) AND i.typeName = 'II' and (d.value >= " + upValue + " or d.value <= -" + downValue + ")";
+            Query tge2Query = this.session().createQuery(tge2);
+            tge2Query.setParameterList(("genesENSG"), genesENSG);
+            te2GeneList = tge2Query.list();
 
             //Get Type III Probes
             //String tp3 = "SELECT distinct p.probeId  FROM Data d INNER JOIN d.probe p INNER JOIN d.dataset ds INNER JOIN ds.ifnType i " +
             //        "WHERE p.probeId IN (:probes) AND i.typeName = 'III'";
 
             //Ross code to test for fold change
-            String tp3 = "SELECT distinct p.probeId  FROM Data d INNER JOIN d.probe p INNER JOIN d.dataset ds INNER JOIN ds.ifnType i " +
+            /*String tp3 = "SELECT distinct p.probeId  FROM Data d INNER JOIN d.probe p INNER JOIN d.dataset ds INNER JOIN ds.ifnType i " +
                     "WHERE p.probeId IN (:probes) AND i.typeName = 'III' and (d.value >= " + upValue + " or d.value <= -" + downValue + ")";
             Query tp3Query = this.session().createQuery(tp3);
             tp3Query.setParameterList(("probes"), probes);
@@ -466,35 +501,43 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
                 Query tg3Query = this.session().createQuery(tg3);
                 tg3Query.setParameterList(("t3ProbeList"), t3ProbeList);
                 t3GeneList = tg3Query.list();
-            }
+            }*/
+
+            //Ross version to retrieve genes by gene ensg, avoiding probes.
+            List<Gene> te3GeneList = new ArrayList<Gene>();
+            String tge3 ="SELECT distinct g from Gene g INNER JOIN g.probe p INNER JOIN p.data d INNER JOIN  d.dataset ds INNER JOIN ds.ifnType i "+
+                    "WHERE g.ensgAccession IN (:genesENSG) AND i.typeName = 'III' and (d.value >= " + upValue + " or d.value <= -" + downValue + ")";
+            Query tge3Query = this.session().createQuery(tge3);
+            tge3Query.setParameterList(("genesENSG"), genesENSG);
+            te3GeneList = tge3Query.list();
 
             //Count Unique members of each list
             //T1, T2, T3, T1T2, T1T3, T2T3, T1T2T3
             //T1T2T3
-            types[6] = findOverlapGenes(findOverlapGenes(t1GeneList, t2GeneList), t3GeneList).size();
+            types[6] = findOverlapGenes(findOverlapGenes(te1GeneList, te2GeneList), te3GeneList).size();
             //T2T3
-            types[5] = findOverlapGenes(t2GeneList, t3GeneList).size() - types[6];
+            types[5] = findOverlapGenes(te2GeneList, te3GeneList).size() - types[6];
             //T1T3
-            types[4] = findOverlapGenes(t1GeneList, t3GeneList).size() - types[6];
+            types[4] = findOverlapGenes(te1GeneList, te3GeneList).size() - types[6];
             //T1T2
-            types[3] = findOverlapGenes(t1GeneList, t2GeneList).size() - types[6];
+            types[3] = findOverlapGenes(te1GeneList, te2GeneList).size() - types[6];
             //T3   -> - T123 - T13 - T23
-            if (t3GeneList.size() == 0) {
+            if (te3GeneList.size() == 0) {
                 types[2] = 0;
             } else {
-                types[2] = t3GeneList.size() - types[6] - types[4] - types[5];
+                types[2] = te3GeneList.size() - types[6] - types[4] - types[5];
             }
             //T2  -> - T123 - T12 - T23
-            if (t2GeneList.size() == 0) {
+            if (te2GeneList.size() == 0) {
                 types[1] = 0;
             } else {
-                types[1] = t2GeneList.size() - types[6] - types[3] - types[5];
+                types[1] = te2GeneList.size() - types[6] - types[3] - types[5];
             }
             //T1  -> - T123 - T12 - T13
-            if (t1GeneList.size() == 0) {
+            if (te1GeneList.size() == 0) {
                 types[0] = 0;
             } else {
-                types[0] = t1GeneList.size() - types[6] - types[3] - types[4];
+                types[0] = te1GeneList.size() - types[6] - types[3] - types[4];
             }
         }
         return types;
