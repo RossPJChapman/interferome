@@ -26,73 +26,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package edu.monash.merc.service;
+package edu.monash.merc.dto;
 
-import edu.monash.merc.common.page.Pagination;
-import edu.monash.merc.common.sql.OrderBy;
-import edu.monash.merc.domain.Gene;
-
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * @author Simon Yu
- * @version 1.0
- * @email Xiaoming.Yu@monash.edu
- * @since 1.0
- *        <p/>
- *        Date: 26/06/12
- *        Time: 6:36 PM
+ * Created by mimr on 1/25/16.
  */
-public interface GeneService {
+public class PromoterGeneBean implements Serializable {
 
-    /**
-     * Get a Gene by Gene id
-     *
-     * @param id a Gene id
-     * @return a Gene object
-     */
-    Gene getGeneById(long id);
+        private String ensgAccession;
 
-    /**
-     * Save a Gene
-     *
-     * @param gene a Gene object
-     */
-    void saveGene(Gene gene);
+        private String probeId;
 
-    /**
-     * Merge a Gene object
-     *
-     * @param gene a Gene object
-     */
-    void mergeGene(Gene gene);
+        //   private String platform;
 
-    /**
-     * Update a Gene object
-     *
-     * @param gene a Gene object
-     */
-    void updateGene(Gene gene);
+        private String speciesName;
 
-    /**
-     * Delete a Gene object
-     *
-     * @param gene a Gene object
-     */
-    void deleteGene(Gene gene);
+    public String getEnsgAccession() {
+        return ensgAccession;
+    }
 
-    /**
-     * Get the Gene by an ensembl accession id
-     *
-     * @param ensgAccession an ensembl accession id
-     * @return a Gene
-     */
-    public Gene getGeneByEnsgAccession(String ensgAccession);
+    public void setEnsgAccession(String ensgAccession) {
+        this.ensgAccession = ensgAccession;
+    }
 
-    public List<Gene> getGenesByProbeId(String probeId);
-   // public Gene getGenesByProbeId(String probeId);
+    public String getProbeId() {
+        return probeId;
+    }
 
-    // public List<Gene> getGenesBySpecies(String speciesId);
+    public void setProbeId(String probeId) {
+        this.probeId = probeId;
+    }
 
-    public Pagination<Gene> getGenes(int startPageNo, int recordsPerPage, OrderBy[] orderBys);
+    public String getSpeciesName() {
+        return speciesName;
+    }
+
+    public void setSpeciesName(String speciesName) {
+        this.speciesName = speciesName;
+    }
 }

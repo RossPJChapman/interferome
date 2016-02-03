@@ -30,69 +30,58 @@ package edu.monash.merc.service;
 
 import edu.monash.merc.common.page.Pagination;
 import edu.monash.merc.common.sql.OrderBy;
-import edu.monash.merc.domain.Gene;
+import edu.monash.merc.domain.Promoter;
 
 import java.util.List;
 
 /**
- * @author Simon Yu
- * @version 1.0
- * @email Xiaoming.Yu@monash.edu
- * @since 1.0
- *        <p/>
- *        Date: 26/06/12
- *        Time: 6:36 PM
+ * Created by mimr on 1/13/16.
  */
-public interface GeneService {
+
+public interface PromoterService {
 
     /**
-     * Get a Gene by Gene id
+     * Get a Promoter by Promoter id
      *
-     * @param id a Gene id
-     * @return a Gene object
+     * @param id a Promoter id
+     * @return a Promoter object
      */
-    Gene getGeneById(long id);
+    Promoter getPromoterById(long id);
 
     /**
-     * Save a Gene
+     * Save a Promoter
      *
-     * @param gene a Gene object
+     * @param promoter a Promoter object
      */
-    void saveGene(Gene gene);
+    void savePromoter(Promoter promoter);
 
     /**
-     * Merge a Gene object
+     * Merge a Promoter object
      *
-     * @param gene a Gene object
+     * @param promoter a Promoter object
      */
-    void mergeGene(Gene gene);
+    void mergePromoter(Promoter promoter);
 
     /**
-     * Update a Gene object
+     * Update a Promoter object
      *
-     * @param gene a Gene object
+     * @param promoter a Promoter object
      */
-    void updateGene(Gene gene);
+    void updatePromoter(Promoter promoter);
 
     /**
-     * Delete a Gene object
+     * Delete a Promoter object
      *
-     * @param gene a Gene object
+     * @param promoter a Promoter object
      */
-    void deleteGene(Gene gene);
+    void deletePromoter(Promoter promoter);
 
     /**
-     * Get the Gene by an ensembl accession id
+     * Get the Promoter by an ensembl accession id
      *
      * @param ensgAccession an ensembl accession id
-     * @return a Gene
+     * @return a Promoter
      */
-    public Gene getGeneByEnsgAccession(String ensgAccession);
+    public Promoter getPromoterByEnsgAccession(String ensgAccession);
 
-    public List<Gene> getGenesByProbeId(String probeId);
-   // public Gene getGenesByProbeId(String probeId);
-
-    // public List<Gene> getGenesBySpecies(String speciesId);
-
-    public Pagination<Gene> getGenes(int startPageNo, int recordsPerPage, OrderBy[] orderBys);
 }
