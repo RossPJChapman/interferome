@@ -1,4 +1,4 @@
 build/
 deploy
-interferome.iws
 .idea/
+dist/
