@@ -52,5 +52,8 @@ public interface IGeneRepository {
 
     public List<Gene> getGenesByProbeId(String probeId);
 
-    // public List<Gene> getGenesBySpecies(String speciesId);
+    //public List<Gene> getGenesBySpecies(String speciesId);
+    public List<Gene> getGenesBySpecies(String species);
+
+    public List<Gene> getAllGenes();
 }

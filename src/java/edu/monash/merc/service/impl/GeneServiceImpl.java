@@ -122,6 +122,19 @@ public class GeneServiceImpl implements GeneService {
    }
 
     @Override
+    public List<Gene> getAllGenes() {
+        return this.geneDao.getAllGenes();
+    }
+
+    @Override
+    public List<Gene> getGenesBySpecies(String species) {
+        return this.geneDao.getGenesBySpecies(species);
+    }
+
+
+
+
+    @Override
     public Pagination<Gene> getGenes(int startPageNo, int recordsPerPage, OrderBy[] orderBys) {
         return this.geneDao.getGenes(startPageNo, recordsPerPage, orderBys);
     }

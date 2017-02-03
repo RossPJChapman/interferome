@@ -55,6 +55,8 @@ public class ImportTFSiteThread implements Runnable {
 
     private TFSiteBean tfSiteBean;
 
+    private String species;
+
     private static String MAIL_SUBJECT = "Transcript Factor Importing Results";
 
     private static String MAIL_TEMPLATE_FILE = "tfSiteImportResultMailTemplate.ftl";

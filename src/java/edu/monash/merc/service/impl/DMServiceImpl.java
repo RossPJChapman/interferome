@@ -1225,11 +1225,23 @@ public class DMServiceImpl implements DMService {
     }
 
     @Override
-    public int saveTFSites(List<TFSite> tfSites) { this.tfSiteService.saveTFSites(tfSites);}
+    public int saveTFSites(List<TFSite> tfSites) {
+        return this.tfSiteService.saveTFSites(tfSites);
+    }
+
+    @Override
+    public int updateTFSites(List<TFSite> tfSites) {
+        return this.tfSiteService.updateTFSites(tfSites);
+    }
 
     @Override
     public void mergeTFSite(TFSite tfSite) {
         this.tfSiteService.mergeTFSite(tfSite);
+    }
+
+    @Override
+    public int mergeTFSites(List<TFSite> tfSites) {
+        return this.tfSiteService.mergeTFSites(tfSites);
     }
 
     @Override
@@ -1253,37 +1265,85 @@ public class DMServiceImpl implements DMService {
         //reporters counter
         TfSiteCounter counter = new TfSiteCounter();
 
-        newTFSites = new List<TFSite>;
-        existTFSites = new List<TFSite>;
+        List<TFSite> newTFSites = new ArrayList<TFSite>();
+        List<TFSite> existTFSites = new ArrayList<TFSite>();
+        int cnt=0;
+        int proc=0;
 
+        System.out.println("reading all genes from db");
+        //get all genes for this species ...
+        List<Gene> genes=this.getAllGenes();
+        HashMap<String, Gene> hmapGene = new HashMap<String, Gene>();
+
+        System.out.println("putting all genes into hm");
+        for (Gene gene: genes) {
+            String ensgAcc=gene.getEnsgAccession();
+            hmapGene.put(ensgAcc,gene);
+        }
+
+        List<TFSite> allTFSites=this.getAllTFSites();
+        System.out.println(allTFSites.size());
+
+
+        System.out.println("processing tfs");
         for (TFSite tfSite : tfSites) {
-            Gene gene = this.getGeneByEnsgAccession(tfSite.getEnsemblID());
+            if(cnt==proc){System.out.println(" " + cnt + " ");cnt=cnt+1000;
+                System.out.println("Exist: " + existTFSites.size() + "\n" + "New: " + newTFSites.size());}
+            proc++;
+            String tfEns=tfSite.getEnsemblID();
+            //Gene gene = this.getGeneByEnsgAccession(tfSite.getEnsemblID());
+            Gene gene = hmapGene.get(tfSite.getEnsemblID());
             if (gene != null) {
                 tfSite.setGene(gene);
-                if (StringUtils.isNotBlank(tfSite.getFactor())) {
+                //if(allTFSites.contains(tfSite)){
+
+                //}
+                int i = 0;
+                while(tfSite.getId()==0 && i<allTFSites.size()){
+                    TFSite testTF=allTFSites.get(i);
+                    String testTfEns=testTF.getEnsemblID();
+                    if(tfSite.getGene().equals(testTF.getGene()) && tfSite.getStart()==testTF.getStart() && tfSite.getEnd()==testTF.getEnd() &&
+                            tfSite.getCoreMatch()==testTF.getCoreMatch() && tfSite.getMatrixMatch()==testTF.getMatrixMatch() && tfSite.getFactor().equals(testTF.getFactor()) &&
+                           tfSite.getStrand()==testTF.getStrand() ){
+
+                        tfSite.setId(testTF.getId());
+                        existTFSites.add(tfSite);
+
+                    }
+                    i++;
+                }
+
+                /*if (StringUtils.isNotBlank(tfSite.getFactor())) {
                     TFSite existedTFSite = this.getTFSite(tfSite);
                     if (existedTFSite != null) {
                         tfSite.setId(existedTFSite.getId());
 
                         // this.mergeReporter(reporter);
-                        // this.updateTFSite(tfSite);
-                        exitTFSite.add(tfSite);
-                        this.mergeTFSite(tfSite);
+                        //this.updateTFSite(tfSite);
+                        existTFSites.add(tfSite);
+                        //this.mergeTFSite(tfSite);
+                        //System.out.println("Merged " + tfSite.getID());
                         //count how many reporters have been updated
                         countUpdated++;
-                    } else {
+                    }*/
+                     //else {
+                if(tfSite.getId()==0){
 
-                        newTFSite.add(tfSite);
-                        this.saveTFSite(tfSite);
+                        newTFSites.add(tfSite);
+                        //this.saveTFSite(tfSite);
 
                         //count how many reporters are new
                         countNew++;
-                    }
+
                 }
             }
         }
 
-        this.saveTFSites(mewTFSites);
+        int newTF = this.saveTFSites(newTFSites);
+        int updateTF = this.mergeTFSites(existTFSites);
+
+        hmapGene=null;
+        allTFSites=null;
 
         counter.setTotalUpdated(countUpdated);
         counter.setTotalNew(countNew);
@@ -1690,6 +1750,22 @@ public class DMServiceImpl implements DMService {
     }
 
     @Override
+    public List<Gene> getGenesBySpecies(String species) {
+        return this.geneService.getGenesBySpecies(species);
+    }
+
+    @Override
+    public List<Gene> getAllGenes() {
+        return this.geneService.getAllGenes();
+    }
+
+
+    @Override
+    public List<TFSite> getAllTFSites() {
+        return this.tfSiteService.getAllTFSites();
+    }
+
+        @Override
     public List<Gene> getGenesByProbeId(String probeId) {
         return this.geneService.getGenesByProbeId(probeId);
     }

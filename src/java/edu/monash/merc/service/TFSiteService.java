@@ -45,6 +45,8 @@ public interface TFSiteService {
 
     public TFSite getTFSiteById(long id);
 
+    public List<TFSite> getAllTFSites();
+
     public void saveTFSite(TFSite tfSite);
 
     public int saveTFSites(List<TFSite> tfSites);
@@ -54,6 +56,8 @@ public interface TFSiteService {
     public void mergeTFSite(TFSite tfSite);
 
     public int updateTFSites(List<TFSite> tfSites);
+
+    public int mergeTFSites(List<TFSite> tfSites);
 
     public void deleteTFSite(TFSite tfSite);
 

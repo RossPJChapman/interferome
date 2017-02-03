@@ -45,8 +45,8 @@ import javax.persistence.*;
  */
 
 @Entity
-@Table(name = "tf_site_ciiider")
-@org.hibernate.annotations.Table(appliesTo = "tf_site_ciiider",
+@Table(name = "tf_site_ciiider_2")
+@org.hibernate.annotations.Table(appliesTo = "tf_site_ciiider_2",
         indexes = {@Index(name = "idx_factor", columnNames = {"factor"})
         })
 public class TFSite extends Domain {
@@ -81,6 +81,10 @@ public class TFSite extends Domain {
     @Basic
     @Column(name = "factor")
     private String factor;
+
+    @Basic
+    @Column(name = "strand")
+    private int strand;
 
     @Transient
     private String ensemblID;
@@ -148,6 +152,10 @@ public class TFSite extends Domain {
     public void setEnsemblID(String ensemblID) {
         this.ensemblID = ensemblID;
     }
+
+    public void setStrand(int strand) {this.strand = strand;}
+
+    public int getStrand() {return  strand;}
 
 
 }

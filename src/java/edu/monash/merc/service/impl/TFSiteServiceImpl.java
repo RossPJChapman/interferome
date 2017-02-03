@@ -65,6 +65,11 @@ public class TFSiteServiceImpl implements TFSiteService {
     }
 
     @Override
+    public List<TFSite> getAllTFSites() {
+        return this.tfSiteDao.getAllTFSites();
+    }
+
+    @Override
     public void saveTFSite(TFSite tfSite) {
         this.tfSiteDao.add(tfSite);
     }
@@ -90,6 +95,12 @@ public class TFSiteServiceImpl implements TFSiteService {
     }
 
     @Override
+    public int mergeTFSites(List<TFSite> tfSites) {
+        return this.tfSiteDao.mergeAll(tfSites);
+    }
+
+
+    @Override
     public void deleteTFSite(TFSite tfSite) {
         this.tfSiteDao.remove(tfSite);
     }
@@ -101,7 +112,7 @@ public class TFSiteServiceImpl implements TFSiteService {
 
     @Override
     public TFSite getTFSite(TFSite tfSite){
-        return this.tfSiteDao.getTFSite(tfSite.getGene(), tfSite.getFactor(), tfSite.getStart(), tfSite.getEnd(), tfSite.getCoreMatch(), tfSite.getMatrixMatch());
+        return this.tfSiteDao.getTFSite(tfSite.getGene(), tfSite.getFactor(), tfSite.getStart(), tfSite.getEnd(), tfSite.getCoreMatch(), tfSite.getMatrixMatch(), tfSite.getStrand());
     }
 
 }

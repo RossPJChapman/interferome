@@ -236,6 +236,12 @@ public interface DMService {
     // TFSite
     public void saveTFSite(TFSite tfSite);
 
+    public int saveTFSites(List<TFSite> tfSites);
+
+    public int updateTFSites(List<TFSite> tfSites);
+
+    public int mergeTFSites(List<TFSite> tfSites);
+
     public void mergeTFSite(TFSite tfSite);
 
     public void updateTFSite(TFSite tfSite);
@@ -344,7 +350,13 @@ public interface DMService {
 
     public Gene getGeneByEnsgAccession(String ensgAccession);
 
+    public List<Gene> getGenesBySpecies(String species);
+
+    public List<Gene> getAllGenes();
+
     public List<Gene> getGenesByProbeId(String probeId);
+
+    public List<TFSite> getAllTFSites();
 
     // public List<Gene> getGenesBySpecies(String speciesId);
 

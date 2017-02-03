@@ -100,12 +100,16 @@ public class HibernateGenericDAO<T> implements IRepository<T> {
 
     @Override
     public int saveAll(List<T> entities) {
+        int cnt=0;
         int insertedCount = 0;
+
         for (int i = 0; i < entities.size(); i++) {
+            if(insertedCount==cnt){System.out.print(" new " + cnt + " ");cnt=cnt+1000;}
             add(entities.get(i));
             if (++insertedCount % 20 == 0) {
                 flushAndClear();
             }
+
         }
         flushAndClear();
         return insertedCount;
@@ -116,6 +120,21 @@ public class HibernateGenericDAO<T> implements IRepository<T> {
         int updatedCount = 0;
         for (int i = 0; i < entities.size(); i++) {
             update(entities.get(i));
+            if (++updatedCount % 20 == 0) {
+                flushAndClear();
+            }
+        }
+        flushAndClear();
+        return updatedCount;
+    }
+
+    @Override
+    public int mergeAll(List<T> entities) {
+        int updatedCount = 0;
+        int cnt = 0;
+        for (int i = 0; i < entities.size(); i++) {
+            if(updatedCount==cnt){System.out.print(" update " + cnt + " ");cnt=cnt+1000;}
+            merge(entities.get(i));
             if (++updatedCount % 20 == 0) {
                 flushAndClear();
             }

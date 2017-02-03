@@ -38,6 +38,7 @@ import edu.monash.merc.dto.SearchBean;
 import edu.monash.merc.dto.VariationCondtion;
 import edu.monash.merc.repository.ISearchDataRepository;
 import edu.monash.merc.util.MercUtil;
+import edu.monash.merc.config.AppPropSettings;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.springframework.context.annotation.Scope;
@@ -54,6 +55,10 @@ import java.util.*;
 import java.io.*;
 import java.io.FileWriter;
 import org.apache.commons.io.FileUtils;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+
 /**
  * SearchDataDAO class which provides searching functionality for Data domain object
  *
@@ -66,6 +71,29 @@ import org.apache.commons.io.FileUtils;
 @Scope("prototype")
 @Repository
 public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchDataRepository {
+
+    @Autowired
+    protected AppPropSettings appSetting;
+
+    public void setAppSetting(AppPropSettings appSetting) {
+        this.appSetting = appSetting;
+    }
+
+    //private String CIIIDER_HOME = "/home/chapmanr/CiiiDER/";
+
+    //String CIIIDER_INPUT = CIIIDER_HOME + "Input";
+
+
+    //public String CIIIDER_HOME =  this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+    //String CIIIDER_OUTPUT = CIIIDER_HOME + "Output/";
+
+
+    //private static String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+    //private String CIIIDER_INPUT = this.appSetting.getPropValue(AppPropSettings.CIIIDER_INPUT);
+
+    //public static String CIIIDER_USER = CIIIDER_OUTPUT + "User/";
+
     @SuppressWarnings("unchecked")
     private List<Long> queryDatasets(SearchBean searchBean) {
         String baseDatasetHql = "SELECT DISTINCT(ds.id) FROM Dataset ds";
@@ -736,17 +764,36 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
 
     // public static String path = "/home/mimr/InCiiiDER/CiiiDER/"; // enclosed with slash / at the end for all path
 
-    public static String CIIIDER_HOME = "/Users/dyin/InCiiiDER/CiiiDER/";
-    public static String CIIIDER_OUTPUT = CIIIDER_HOME + "Output/";
-    public static String CIIIDER_INPUT = CIIIDER_HOME + "Input/";
-    public static String CIIIDER_USER = CIIIDER_OUTPUT + "User/";
-    public static String getCiiiderUser() {
+    //String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+    //String CIIIDER_INPUT = CIIIDER_HOME + "Input";
+
+
+    //public static String CIIIDER_HOME; // = "/home/chapmanr/CiiiDER/";
+    //String CIIIDER_OUTPUT = CIIIDER_HOME + "Output/";
+    //public static String CIIIDER_INPUT = CIIIDER_HOME + "Input/";
+
+
+    public  String getCiiiderUser() {
+
+        String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+        String CIIIDER_OUTPUT = CIIIDER_HOME + "Output/";
+
+        String CIIIDER_USER = CIIIDER_OUTPUT + "User/";
+
         return CIIIDER_USER;
     }
     @SuppressWarnings("unchecked")
     @Override
     public List<Object[]> searchTFSite(SearchBean searchBean, int startPageNo, int recordPerPage, String orderBy, String sortBy, String userCiiiDERId) {
         Pagination<Probe> uniqueProbesPages = searchProbes(searchBean, startPageNo, -1, orderBy, sortBy);
+
+        String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+        //String CIIIDER_HOME = "/home/chapmanr/CiiiDER/";
+        String CIIIDER_INPUT = CIIIDER_HOME + "/Input/";
+        String CIIIDER_OUTPUT = CIIIDER_HOME + "/Output/";
+        String CIIIDER_USER = CIIIDER_OUTPUT + "User/";
 
         List<Probe> probes = uniqueProbesPages.getPageResults();
 
@@ -799,20 +846,35 @@ public class SearchDataDAO extends HibernateGenericDAO<Data> implements ISearchD
 
     public void runCiiiDER(String userDir, String configFilename) {
         try {
-            String HsRunParam = "java -jar " + CIIIDER_HOME + "Jar/CiiiDER.jar" + " -n " + userDir + "Human" + configFilename;
+
+            //String CIIIDER_HOME = "/home/chapmanr/CiiiDER/";
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+            String CIIIDER_INPUT = CIIIDER_HOME + "/Input";
+            String CIIIDER_OUTPUT = CIIIDER_HOME + "/Output";
+            String CIIIDER_USER = CIIIDER_OUTPUT + "/User/";
+
+
+            String HsRunParam = "java -jar " + CIIIDER_HOME + "/Jar/CiiiDER.jar" + " -n " + userDir + "Human" + configFilename;
             Process HsProcess = Runtime.getRuntime().exec(HsRunParam);
             HsProcess.waitFor();
-            String MmRunParam = "java -jar " + CIIIDER_HOME + "Jar/CiiiDER.jar" + " -n " + userDir + "Mouse" + configFilename;
+            String MmRunParam = "java -jar " + CIIIDER_HOME + "/Jar/CiiiDER.jar" + " -n " + userDir + "Mouse" + configFilename;
             Process MmProcess = Runtime.getRuntime().exec(MmRunParam);
             MmProcess.waitFor();
         } catch (InterruptedException e) {
             e.printStackTrace();}
           catch (IOException e) {
-            e.printStackTrace();}
+            e.printStackTrace();
+              System.out.println(e);    }
     }
 
-    public void generateCiiiDERConfigFile(String userDir) {
+    private void generateCiiiDERConfigFile(String userDir) {
         try {
+
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+            //String CIIIDER_HOME = "/home/chapmanr/CiiiDER/";
+            String CIIIDER_INPUT = CIIIDER_HOME + "/Input/";
+            String CIIIDER_OUTPUT = CIIIDER_HOME + "/Output/";
+            String CIIIDER_USER = CIIIDER_OUTPUT + "User/";
         BufferedWriter HsEnrichConfig = new BufferedWriter(new FileWriter(new File(userDir + "HumanConfigMain.ini")));
         BufferedWriter MmEnrichConfig = new BufferedWriter(new FileWriter(new File(userDir + "MouseConfigMain.ini")));
 

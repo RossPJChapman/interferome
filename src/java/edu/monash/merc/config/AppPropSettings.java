@@ -170,6 +170,12 @@ public class AppPropSettings {
 
     public static String REFSEQ_ID_LINK = "refseq.id.resource.link";
 
+    //CiiiDER home dir
+    public static String CIIIDER_HOME = "ciiider.home.directory";
+
+    public static String CIIIDER_INPUT = "ciiider.input.directory";
+
+
     @Autowired
     @Qualifier("appPropConfigurer")
     private ApplicationPropertyConfigurater appPropConfigurater;

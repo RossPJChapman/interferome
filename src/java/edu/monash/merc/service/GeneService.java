@@ -92,7 +92,9 @@ public interface GeneService {
     public List<Gene> getGenesByProbeId(String probeId);
    // public Gene getGenesByProbeId(String probeId);
 
-    // public List<Gene> getGenesBySpecies(String speciesId);
+    public List<Gene> getGenesBySpecies(String species);
+
+    public List<Gene> getAllGenes();
 
     public Pagination<Gene> getGenes(int startPageNo, int recordsPerPage, OrderBy[] orderBys);
 }

@@ -52,11 +52,15 @@ public interface GeneField {
 
     static final String BAND = "Band";
 
-    static final String GENE_NAME = "Associated Gene Name";
+    //static final String GENE_NAME = "Associated Gene Name";
+
+    static final String GENE_NAME = "HGNC symbol";
 
     static final String UNIGENE = "Unigene ID";
 
-    static final String GENBANK = "Protein (Genbank) ID";
+    //static final String GENBANK = "Protein (Genbank) ID";
+
+    static final String GENBANK = "Protein (Genbank) ID [e.g. AAA02487]";
 
     static final String ENTREZ = "EntrezGene ID";
 

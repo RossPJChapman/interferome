@@ -29,7 +29,7 @@
 package edu.monash.merc.system.scheduling.impl;
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.Statement;
-import com.sun.xml.internal.fastinfoset.util.StringArray;
+//import com.sun.xml.internal.fastinfoset.util.StringArray;
 import com.thoughtworks.xstream.io.path.Path;
 import com.thoughtworks.xstream.mapper.AnnotationConfiguration;
 import edu.monash.merc.common.results.DBStats;
@@ -123,9 +123,9 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
     @Autowired
     protected AppPropSettings appSetting;
 
-    public static String CIIIDER_HOME = SearchDataDAO.CIIIDER_HOME;
+    //public static String CIIIDER_HOME = SearchDataDAO.CIIIDER_HOME;
 
-    public static String CIIIDER_INPUT = SearchDataDAO.CIIIDER_INPUT;
+    //public static String CIIIDER_INPUT = SearchDataDAO.CIIIDER_INPUT;
 
     private static String MOUSE = "mmusculus_gene_ensembl";
 
@@ -141,9 +141,6 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
         this.dmService = dmService;
     }
 
-    public void setAppSetting(AppPropSettings appSetting) {
-        this.appSetting = appSetting;
-    }
 
     @Autowired
     private DBStatisticsService dbStatisticsService;
@@ -190,13 +187,19 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
 
     private void importCiiiDERAllInput() {
 
+        String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+        String CIIIDER_INPUT = CIIIDER_HOME + "Input/";
+
+
+
         System.out.println("Updating the CiiiDER genome files ...");
-        // downloadCiiiDERGenome(PROBE_HUMAN_TYPE);
-        // downloadCiiiDERGenome(PROBE_MOUSE_TYPE);
+         downloadCiiiDERGenome(PROBE_HUMAN_TYPE);
+         downloadCiiiDERGenome(PROBE_MOUSE_TYPE);
 
         System.out.println("Updating the CiiiDER genome gtf files ...");
-        // downloadCiiiDERGenomeGTF(PROBE_HUMAN_TYPE);
-        // downloadCiiiDERGenomeGTF(PROBE_MOUSE_TYPE);
+         downloadCiiiDERGenomeGTF(PROBE_HUMAN_TYPE);
+         downloadCiiiDERGenomeGTF(PROBE_MOUSE_TYPE);
 
         System.out.println("Updating the CiiiDER gene list text files ...");
         exportCiiiDERGeneList("IFNGene", PROBE_HUMAN_TYPE);
@@ -205,25 +208,25 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
         exportCiiiDERGeneList("BackgroundGene", PROBE_MOUSE_TYPE);
 
         System.out.println("Generating the CiiiDER background and IFN gene promoter fasta files ...");
-        // generateCiiiDERPromoter("BackgroundGene", PROBE_HUMAN_TYPE);
-        // generateCiiiDERPromoter("BackgroundGene", PROBE_MOUSE_TYPE);
+        generateCiiiDERPromoter("BackgroundGene", PROBE_HUMAN_TYPE);
+        generateCiiiDERPromoter("BackgroundGene", PROBE_MOUSE_TYPE);
 
-        // importCiiiDERBgGenePromoter(PROBE_HUMAN_TYPE);
-        // importCiiiDERBgGenePromoter(PROBE_MOUSE_TYPE);
+        importCiiiDERBgGenePromoter(PROBE_HUMAN_TYPE);
+        importCiiiDERBgGenePromoter(PROBE_MOUSE_TYPE);
 
-        // generateCiiiDERPromoter("IFNGene", PROBE_HUMAN_TYPE);
-        // generateCiiiDERPromoter("IFNGene", PROBE_MOUSE_TYPE);
+        generateCiiiDERPromoter("IFNGene", PROBE_HUMAN_TYPE);
+        generateCiiiDERPromoter("IFNGene", PROBE_MOUSE_TYPE);
 
-        // importCiiiDERGenePromoter(PROBE_HUMAN_TYPE);
-        // importCiiiDERGenePromoter(PROBE_MOUSE_TYPE);
+        importCiiiDERGenePromoter(PROBE_HUMAN_TYPE);
+        importCiiiDERGenePromoter(PROBE_MOUSE_TYPE);
 
         System.out.println("Generating the CiiiDER tfsite file ...");
-        // generateCiiiDERTFSite(PROBE_HUMAN_TYPE);
-        // generateCiiiDERTFSite(PROBE_MOUSE_TYPE);
+        generateCiiiDERTFSite(PROBE_HUMAN_TYPE);
+        generateCiiiDERTFSite(PROBE_MOUSE_TYPE);
 
         System.out.println("Importing the CiiiDER tfsite data into database...");
-        // importCiiiDERTFSite(PROBE_HUMAN_TYPE);
-        // importCiiiDERTFSite(PROBE_MOUSE_TYPE);
+        importCiiiDERTFSite(PROBE_HUMAN_TYPE);
+        importCiiiDERTFSite(PROBE_MOUSE_TYPE);
 
         System.out.println("Completed updating ALL CiiiDER input data!");
 
@@ -233,10 +236,14 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
     private void importCiiiDERBgGenePromoter(String species) {
         try {
 
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+            String CIIIDER_INPUT = CIIIDER_HOME + "/Input/";
+
             List<Promoter> promoters = new ArrayList<Promoter>();
             Promoter promoter = new Promoter();
 
-            BufferedReader brGeneEnsgs = new BufferedReader(new FileReader(new File(CIIIDER_HOME + "Output/FindPromoter/BackgroundGene/" + species + "BgGenePromoter.fa")));
+            BufferedReader brGeneEnsgs = new BufferedReader(new FileReader(new File(CIIIDER_HOME + "/Output/FindPromoter/BackgroundGene/" + species + "BgGenePromoter.fa")));
 
             String line = null;
             while ((line = brGeneEnsgs.readLine()) != null) {
@@ -277,6 +284,11 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
     private void generateCiiiDERPromoter(String promoterType, String species) {
 
         try {
+
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+            String CIIIDER_INPUT = CIIIDER_HOME + "Input/";
+
             String runCiiiDER = null;
             if (promoterType == "BackgroundGene") {
                 runCiiiDER = "java -jar " + CIIIDER_HOME + "Jar/CiiiDER.jar" + " -n " + CIIIDER_HOME + "Config/FindPromoter/BackgroundGene/" + species + "ConfigFindPromoterBg.ini";
@@ -303,11 +315,15 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
             // Scanner promoterScanner = new Scanner(promoterFile);
 
             // List<Promoter> promoters = new ArrayList<Promoter>();
+
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+            String CIIIDER_INPUT = CIIIDER_HOME + "/Input/";
             List<Promoter> promoters = new ArrayList<Promoter>();
             Promoter promoter = new Promoter();
 
 
-            BufferedReader brGeneEnsgs = new BufferedReader(new FileReader(new File(CIIIDER_HOME + "Output/FindPromoter/IFNGene/" + species + "IFNGenePromoter.fa")));
+            BufferedReader brGeneEnsgs = new BufferedReader(new FileReader(new File(CIIIDER_HOME + "/Output/FindPromoter/IFNGene/" + species + "IFNGenePromoter.fa")));
 
             String line = null;
             while ((line = brGeneEnsgs.readLine()) != null) {
@@ -342,6 +358,10 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
     private void generateCiiiDERTFSite(String species) {
 
         try {
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+            String CIIIDER_INPUT = CIIIDER_HOME + "Input/";
+
             String runCiiiDER = null;
             if (species == PROBE_HUMAN_TYPE) {
                 runCiiiDER = "java -jar " + CIIIDER_HOME + "Jar/CiiiDER.jar" + " -n " + CIIIDER_HOME + "Config/ScanTFSite/" + species + "ConfigScanTFSite.ini";
@@ -363,6 +383,10 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
 
     private void importCiiiDERTFSite (String species) {
         try {
+
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+            String CIIIDER_INPUT = CIIIDER_HOME + "/Input/";
         // Pre-run CiiiDER if bsl.txt file not available
         // Create TFSite array to store TFSite
         List<TFSite> tfSites = new ArrayList<TFSite>();
@@ -370,7 +394,7 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
         
         // Read in bsl.txt
         BufferedReader brGeneBSL = new BufferedReader(new FileReader
-                (new File (CIIIDER_HOME + "Output/ScanTFSite/" + species + "GeneBindingSiteList.txt")));
+                (new File (CIIIDER_HOME + "/Output/ScanTFSite/" + species + "GeneBindingSiteList.txt")));
         // LineIterator itGeneBSL = FileUtils.lineIterator(new File (CIIIDER_HOME + "Output/ScanTFSite/" + species + "GeneBindingSiteList.txt"));
 
         String line;
@@ -382,6 +406,7 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
                 int end = Integer.valueOf(line.substring(StringUtils.ordinalIndexOf(line, ",", 5) + 1, StringUtils.ordinalIndexOf(line, ",", 6)));
                 Double coreMatch = Double.valueOf(line.substring(StringUtils.ordinalIndexOf(line, ",", 7) + 1, StringUtils.ordinalIndexOf(line, ",", 8)));
                 Double matrixMatch = Double.valueOf(line.substring(StringUtils.ordinalIndexOf(line, ",", 8) + 1));
+                int strand = Integer.valueOf(line.substring(StringUtils.ordinalIndexOf(line, ",", 6) + 1, StringUtils.ordinalIndexOf(line, ",", 7)));
 
             tfSite = new TFSite();
 
@@ -393,6 +418,7 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
             tfSite.setCoreMatch(coreMatch);
             tfSite.setMatrixMatch(matrixMatch);
             tfSite.setEnsemblID(ensgAccession);
+            tfSite.setStrand(strand);
 
 
             if(!tfSites.contains(tfSite)) tfSites.add(tfSite);
@@ -402,6 +428,7 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
 
             brGeneBSL.close();
             System.out.println(tfSites.size());
+            //List<TFSite> tfSitesSubSet = tfSites.subList(365,400);
             this.dmService.importAllTFSites(tfSites);
             System.out.println("Completed importing CiiiDER tfsite of size :" + tfSites.size());
 
@@ -431,8 +458,13 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
 
             try {
 
+                String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+                String CIIIDER_INPUT = CIIIDER_HOME + "/Input/";
+
             FTPClient ftpClient = new FTPClient();
             ftpClient.connect(host, 21);
+            ftpClient.enterLocalPassiveMode();
             ftpClient.login(user, pass);
 
             if (species == PROBE_HUMAN_TYPE) {
@@ -507,8 +539,13 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
 
         try {
 
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+            String CIIIDER_INPUT = CIIIDER_HOME + "/Input/";
+
             FTPClient ftpClient = new FTPClient();
             ftpClient.connect(host, 21);
+            ftpClient.enterLocalPassiveMode();
             ftpClient.login(user, pass);
 
             if (species == PROBE_HUMAN_TYPE) {
@@ -588,6 +625,11 @@ public class INFDataProcessor extends HibernateGenericDAO<Data> implements DataP
         // Export geneAccession from Interferome to update promoter information
 
         try {
+
+            String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+            String CIIIDER_INPUT = CIIIDER_HOME + "/Input/";
+
 
 
             if (geneType == "IFNGene") {

@@ -91,15 +91,23 @@ public class TfSiteDAO extends HibernateGenericDAO<TFSite> implements ITFSiteRep
     }
 
     @Override
-    public TFSite getTFSite(Gene gene, String factor, int start, int end, Double coreMatch, Double matrixMatch) {
+    public TFSite getTFSite(Gene gene, String factor, int start, int end, Double coreMatch, Double matrixMatch, int strand) {
         Criteria criteria = this.session().createCriteria(this.persistClass);
         criteria.add(Restrictions.eq("start", start));
         criteria.add(Restrictions.eq("end", end));
         criteria.add(Restrictions.eq("factor", factor));
         criteria.add(Restrictions.eq("coreMatch", coreMatch));
         criteria.add(Restrictions.eq("matrixMatch", matrixMatch));
+        criteria.add(Restrictions.eq("strand", strand));
         Criteria geneCriteria = criteria.createCriteria("gene");
         geneCriteria.add(Restrictions.eq("id", gene.getId()));
         return (TFSite) criteria.uniqueResult();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<TFSite> getAllTFSites() {
+        Criteria criteria = this.session().createCriteria(this.persistClass);
+        return criteria.list();
     }
 }

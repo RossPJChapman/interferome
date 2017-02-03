@@ -49,4 +49,6 @@ public interface IRepository<T> {
 	public int saveAll(List<T> entities);
 
     public int updateAll(List<T> entities);
+
+    public int mergeAll(List<T> entities);
 }

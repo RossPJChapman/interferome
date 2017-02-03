@@ -721,6 +721,32 @@
                 <param name="bufferSize">${bufferSize}</param>
             </result>
         </action>
+
+        <!-- export the Mouse TF CDR   -->
+        <action name="exportMouseCDRFileTFanalysis" class="search.searchAction" method="exportMouseCDRFileTFanalysis">
+            <result name="input">/web/search/search.ftl</result>
+            <result name="error">/web/search/search.ftl</result>
+            <result name="success" type="stream">
+                <param name="contentType">${contentType}</param>
+                <param name="inputName">inputStream</param>
+                <param name="contentDisposition">contentDisposition}</param>
+                <param name="bufferSize">${bufferSize}</param>
+            </result>
+        </action>
+
+        <!-- export the Human TF CDR   -->
+        <action name="exportHumanCDRFileTFanalysis" class="search.searchAction" method="exportHumanCDRFileTFanalysis">
+            <result name="input">/web/search/search.ftl</result>
+            <result name="error">/web/search/search.ftl</result>
+            <result name="success" type="stream">
+                <param name="contentType">${contentType}</param>
+                <param name="inputName">inputStream</param>
+                <param name="contentDisposition">contentDisposition}</param>
+                <param name="bufferSize">${bufferSize}</param>
+            </result>
+        </action>
+
+
         <!-- export the Chromosome -->
         <action name="exportCsvFileChromosome" class="search.searchAction" method="exportCsvFileChromosome">
             <result name="input">/web/search/search.ftl</result>

@@ -63,6 +63,10 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.*;
 import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import freemarker.ext.beans.BeansWrapper;
 /**
  * SearchAction Action class
@@ -73,15 +77,18 @@ import freemarker.ext.beans.BeansWrapper;
 @Scope("prototype")
 @Controller("search.searchAction")
 public class SearchAction extends DMBaseAction {
-    public static String CIIIDER_USER = SearchDataDAO.getCiiiderUser();
+    //public static String CIIIDER_USER = SearchDataDAO.getCiiiderUser();
     // Generate random number for user-specifc Enrich run analysis file
     public final static String userCiiiDERId = Long.toHexString(Double.doubleToLongBits(Math.random())).toString();
 
-    public String getUSERDIR() {
+    /*public String getUSERDIR() {
         return USERDIR;
-    }
+    }*/
 
-    public final static String USERDIR = CIIIDER_USER + userCiiiDERId;
+    //public final static String USERDIR = CIIIDER_USER + userCiiiDERId;
+
+    //@Autowired
+    //private SearchDataDAO searchDataDAO;
 
 
     @Autowired
@@ -218,6 +225,20 @@ public class SearchAction extends DMBaseAction {
      * csv file content disposition
      */
     private String contentDisposition;
+
+    /**
+     * file inputstream
+     */
+    private InputStream fileInputStream;
+    private InputStream inputStream;
+
+    //getter for input stream length
+    private long contentLength;
+
+    /*public long getContentLength() {
+        return contentLength;
+    }*/
+
 
     /**
      * csv file exporting buffer size
@@ -586,6 +607,17 @@ public class SearchAction extends DMBaseAction {
 
     @SuppressWarnings("unchecked")
     public String searchTFSite() {
+
+        String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+        String CIIIDER_INPUT = CIIIDER_HOME + "/Input";
+
+        String CIIIDER_OUTPUT = CIIIDER_HOME + "/Output";
+
+        String CIIIDER_USER = CIIIDER_OUTPUT + "/User/";
+
+
+
         try {
             //get the logged in user if existed
             user = getCurrentUser();
@@ -1094,6 +1126,24 @@ public class SearchAction extends DMBaseAction {
     }
 
     public String exportCsvFileTFanalysis() {
+
+        String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+        //String CIIIDER_INPUT = CIIIDER_HOME + "Input";
+
+        String CIIIDER_OUTPUT = CIIIDER_HOME + "Output/";
+
+        String CIIIDER_USER = CIIIDER_OUTPUT + "User/";
+
+        //String CIIIDER_USER = SearchDataDAO.getCiiiderUser();
+        // Generate random number for user-specifc Enrich run analysis file
+         //String userCiiiDERId = Long.toHexString(Double.doubleToLongBits(Math.random())).toString();
+
+
+
+        String USERDIR = CIIIDER_USER + userCiiiDERId;
+
+
         try {
             //get the logged in user if existed
             user = getCurrentUser();
@@ -1186,6 +1236,272 @@ public class SearchAction extends DMBaseAction {
             this.contentDisposition = "attachment;filename=\"" + FileName + "_TFanalysisSearchResults.txt" + "\"";
             this.bufferSize = 20480;
             this.contentType = "application/octet-stream";
+
+            //set the searched flag as true
+            searched = true;
+            //sub type post process
+            subTypePostProcess();
+        } catch (Exception ex) {
+            logger.error(ex);
+            addActionError(getText("data.search.export.tf.analysis.csv.file.failed"));
+            return ERROR;
+        }
+
+        // FileUtils.deleteQuietly(new File("/home/mimr/dyin/enrich/" + userCiiiDERId));
+
+        return SUCCESS;
+    }
+
+
+    public String exportMouseCDRFileTFanalysis() {
+
+        String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+        String CIIIDER_INPUT = CIIIDER_HOME + "/Input";
+
+        String CIIIDER_OUTPUT = CIIIDER_HOME + "/Output/";
+
+        String CIIIDER_USER = CIIIDER_OUTPUT + "User/";
+
+        try {
+            //get the logged in user if existed
+
+            //final String string = searchTFSite();
+
+            user = getCurrentUser();
+            if (user != null) {
+                viewDsAct = ActionConts.VIEW_DATASET_ACTION;
+            } else {
+                viewDsAct = ActionConts.VIEW_PUB_DATASET_ACTION;
+            }
+            //validation failed
+            if (!validConds()) {
+                //sub type post process
+                subTypePostProcess();
+                return ERROR;
+            }
+            int maxRecordLimit = Integer.valueOf(appSetting.getPropValue(AppPropSettings.SEARCH_RESULT_TO_CSV_MAX_RECORD));
+
+            if (maxRecords == 0) {
+                maxRecords = maxRecordLimit;
+            }
+            if (maxRecords > maxRecordLimit) {
+                maxRecords = maxRecordLimit;
+            }
+
+            //query the data by pagination
+
+            List<Object[]> results = this.searchDataService.searchTFSite(searchBean, 1, maxRecords, orderBy, orderByType, userCiiiDERId);
+            //Convert results into Hash of object[x][4] with gene as hash and
+            //start, end, core match, matrix match ad
+
+            tfSiteList = new LinkedHashMap<String, List<TFSite>>();
+
+            File mouseProject = new File(CIIIDER_USER + userCiiiDERId + "/MouseProject.CDR");
+
+            try {
+
+                File HumanEnrichmentAnalysisMostSig = new File (CIIIDER_USER + userCiiiDERId + "/HumanEnrichmentAnalysis_MostSigDeficit.txt");
+                File MouseEnrichmentAnalysisMostSig = new File (CIIIDER_USER + userCiiiDERId + "/MouseEnrichmentAnalysis_MostSigDeficit.txt");
+
+                HashMap<String, Double> sigTFHuman = new HashMap<String, Double>();
+                HashMap<String, Double> sigTFMouse = new HashMap<String, Double>();
+
+
+                if (HumanEnrichmentAnalysisMostSig.exists()) {
+                    sigTFHuman = filterSigBSFromTfSiteList(CIIIDER_USER + userCiiiDERId + "/HumanEnrichmentAnalysis_MostSigDeficit.txt");
+                }
+
+                if (MouseEnrichmentAnalysisMostSig.exists()) {
+                    sigTFMouse = filterSigBSFromTfSiteList(CIIIDER_USER + userCiiiDERId + "/MouseEnrichmentAnalysis_MostSigDeficit.txt");
+                }
+
+
+
+                HashMap<String, Double> sigTFList = new HashMap<String, Double>();
+                sigTFList.putAll(sigTFHuman); sigTFList.putAll(sigTFMouse);
+
+                // Put HashMap
+            /*
+            HashMap<String, Double> hashMapMm = filterSigBSFromTfSiteList(CIIIDER_USER  + "Outputs/getPromoter/Mm/MmEnrichment_IRGsFromPCGs_mediumMatrices_2500_MostSigDeficit.txt");
+            convertBSLToTfSiteList(CIIIDER_HOME + "Outputs/getPromoter/Mm/MmBSL_IRGsFromPCGs_mediumMatrices_2500.txt", hashMapMm);
+            HashMap<String, Double> hashMapHs = filterSigBSFromTfSiteList(CIIIDER_HOME + "Outputs/getPromoter/Hs/HsEnrichment_IRGsFromPCGs_mediumMatrices_2500_MostSigDeficit.txt");
+            convertBSLToTfSiteList(CIIIDER_HOME + "Outputs/getPromoter/Hs/HsBSL_IRGsFromPCGs_mediumMatrices_2500.txt", hashMapHs);*/
+
+
+                List<Object[]> resultsHuman = new ArrayList<Object[]>();
+                List<Object[]> resultsMouse = new ArrayList<Object[]>();
+
+
+                for (Object[] row : results) {
+                    // Split results by species
+                    String ensgAccession = ((Gene) row[0]).getEnsgAccession();
+                    if (ensgAccession.startsWith("ENSG")) {
+                        resultsHuman.add(row);
+                    } else {
+                        resultsMouse.add(row);
+                    }
+                }
+
+
+                HashMap<String, List<TFSite>> tfSiteListHuman = getTFSiteListBySpecies(resultsHuman, sigTFHuman);
+                HashMap<String, List<TFSite>> tfSiteListMouse = getTFSiteListBySpecies(resultsMouse, sigTFMouse);
+
+
+                tfSiteList.putAll(tfSiteListHuman); tfSiteList.putAll(tfSiteListMouse);
+
+
+            } catch(IOException e) {
+                e.printStackTrace();}
+
+
+            /*String path=mouseProject.getAbsolutePath();
+            //createCDRFileTFanalysis(path);
+
+            this.fileInputStream = createCDRFileTFanalysis(path);
+            //this.fileInputStream = new FileInputStream(new File(path));
+
+
+            this.csvInputStream = createCSVFileTFanalysis(searchBean, tfSiteList);
+            //String FileName = MercUtil.genCurrentTimestamp();*/
+
+            //File fileToDownload = new File("/home/chapmanr/CiiiDER/Output/User/3f8c3786dc075380/MouseProject.CDR");
+            File fileToDownload = new File(CIIIDER_USER + userCiiiDERId + "/MouseProject.CDR");
+
+            this.inputStream = new FileInputStream(fileToDownload);
+
+            contentLength = fileToDownload.length();
+
+            this.contentDisposition = "attachment;filename=\"" + "MouseProject.CDR" + "\"" ;//+ "_TFanalysisSearchResults.txt" + "\"";
+            this.bufferSize = 20480;
+            this.contentType = "application/octet-stream";
+
+            //set the searched flag as true
+            searched = true;
+            //sub type post process
+            subTypePostProcess();
+        } catch (Exception ex) {
+            logger.error(ex);
+            addActionError(getText("data.search.export.tf.analysis.csv.file.failed"));
+            return ERROR;
+        }
+
+        // FileUtils.deleteQuietly(new File("/home/mimr/dyin/enrich/" + userCiiiDERId));
+
+        return SUCCESS;
+    }
+
+    public String exportHumanCDRFileTFanalysis() {
+
+        String CIIIDER_HOME = this.appSetting.getPropValue(AppPropSettings.CIIIDER_HOME);
+
+        String CIIIDER_INPUT = CIIIDER_HOME + "/Input";
+
+        String CIIIDER_OUTPUT = CIIIDER_HOME + "/Output/";
+
+        String CIIIDER_USER = CIIIDER_OUTPUT + "User/";
+        try {
+            //get the logged in user if existed
+
+            //final String string = searchTFSite();
+
+            user = getCurrentUser();
+            if (user != null) {
+                viewDsAct = ActionConts.VIEW_DATASET_ACTION;
+            } else {
+                viewDsAct = ActionConts.VIEW_PUB_DATASET_ACTION;
+            }
+            //validation failed
+            if (!validConds()) {
+                //sub type post process
+                subTypePostProcess();
+                return ERROR;
+            }
+            int maxRecordLimit = Integer.valueOf(appSetting.getPropValue(AppPropSettings.SEARCH_RESULT_TO_CSV_MAX_RECORD));
+
+            if (maxRecords == 0) {
+                maxRecords = maxRecordLimit;
+            }
+            if (maxRecords > maxRecordLimit) {
+                maxRecords = maxRecordLimit;
+            }
+
+            //query the data by pagination
+
+            List<Object[]> results = this.searchDataService.searchTFSite(searchBean, 1, maxRecords, orderBy, orderByType, userCiiiDERId);
+            //Convert results into Hash of object[x][4] with gene as hash and
+            //start, end, core match, matrix match ad
+
+            tfSiteList = new LinkedHashMap<String, List<TFSite>>();
+
+            File humanProject = new File(CIIIDER_USER + userCiiiDERId + "/HumanProject.CDR");
+
+            try {
+
+                File HumanEnrichmentAnalysisMostSig = new File (CIIIDER_USER + userCiiiDERId + "/HumanEnrichmentAnalysis_MostSigDeficit.txt");
+                File MouseEnrichmentAnalysisMostSig = new File (CIIIDER_USER + userCiiiDERId + "/MouseEnrichmentAnalysis_MostSigDeficit.txt");
+
+                HashMap<String, Double> sigTFHuman = new HashMap<String, Double>();
+                HashMap<String, Double> sigTFMouse = new HashMap<String, Double>();
+
+
+                if (HumanEnrichmentAnalysisMostSig.exists()) {
+                    sigTFHuman = filterSigBSFromTfSiteList(CIIIDER_USER + userCiiiDERId + "/HumanEnrichmentAnalysis_MostSigDeficit.txt");
+                }
+
+                if (MouseEnrichmentAnalysisMostSig.exists()) {
+                    sigTFMouse = filterSigBSFromTfSiteList(CIIIDER_USER + userCiiiDERId + "/MouseEnrichmentAnalysis_MostSigDeficit.txt");
+                }
+
+
+
+                HashMap<String, Double> sigTFList = new HashMap<String, Double>();
+                sigTFList.putAll(sigTFHuman); sigTFList.putAll(sigTFMouse);
+
+                // Put HashMap
+            /*
+            HashMap<String, Double> hashMapMm = filterSigBSFromTfSiteList(CIIIDER_USER  + "Outputs/getPromoter/Mm/MmEnrichment_IRGsFromPCGs_mediumMatrices_2500_MostSigDeficit.txt");
+            convertBSLToTfSiteList(CIIIDER_HOME + "Outputs/getPromoter/Mm/MmBSL_IRGsFromPCGs_mediumMatrices_2500.txt", hashMapMm);
+            HashMap<String, Double> hashMapHs = filterSigBSFromTfSiteList(CIIIDER_HOME + "Outputs/getPromoter/Hs/HsEnrichment_IRGsFromPCGs_mediumMatrices_2500_MostSigDeficit.txt");
+            convertBSLToTfSiteList(CIIIDER_HOME + "Outputs/getPromoter/Hs/HsBSL_IRGsFromPCGs_mediumMatrices_2500.txt", hashMapHs);*/
+
+
+                List<Object[]> resultsHuman = new ArrayList<Object[]>();
+                List<Object[]> resultsMouse = new ArrayList<Object[]>();
+
+
+                for (Object[] row : results) {
+                    // Split results by species
+                    String ensgAccession = ((Gene) row[0]).getEnsgAccession();
+                    if (ensgAccession.startsWith("ENSG")) {
+                        resultsHuman.add(row);
+                    } else {
+                        resultsMouse.add(row);
+                    }
+                }
+
+
+                HashMap<String, List<TFSite>> tfSiteListHuman = getTFSiteListBySpecies(resultsHuman, sigTFHuman);
+                HashMap<String, List<TFSite>> tfSiteListMouse = getTFSiteListBySpecies(resultsMouse, sigTFMouse);
+
+
+                tfSiteList.putAll(tfSiteListHuman); tfSiteList.putAll(tfSiteListMouse);
+
+
+            } catch(IOException e) {
+                e.printStackTrace();}
+
+
+            File fileToDownload = new File(CIIIDER_USER + userCiiiDERId + "/HumanProject.CDR");
+
+            this.inputStream = new FileInputStream(fileToDownload);
+
+            contentLength = fileToDownload.length();
+
+            this.contentDisposition = "attachment;filename=\"" + "HumanProject.CDR" + "\"" ;//+ "_TFanalysisSearchResults.txt" + "\"";
+            this.bufferSize = 20480;
+            this.contentType = "application/octet-stream";
+
 
             //set the searched flag as true
             searched = true;
@@ -3292,6 +3608,10 @@ public class SearchAction extends DMBaseAction {
     public void setCsvInputStream(InputStream csvInputStream) {
         this.csvInputStream = csvInputStream;
     }
+
+    public InputStream getInputStream() {return inputStream; }
+
+    public void setInputStream(InputStream inputStream) {this.inputStream = inputStream; }
 
     public InputStream getImageStream() {
         return imageStream;

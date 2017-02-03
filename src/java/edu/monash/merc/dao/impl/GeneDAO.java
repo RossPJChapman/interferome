@@ -111,4 +111,28 @@ public class GeneDAO extends HibernateGenericDAO<Gene> implements IGeneRepositor
         return criteria.list();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<Gene> getAllGenes() {
+        Criteria criteria = this.session().createCriteria(this.persistClass);
+        return criteria.list();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<Gene> getGenesBySpecies(String species) {
+        String ensg="";
+        if(species.equals("Human")){
+            ensg="ensg%";
+        }
+        else if (species.equals("Mouse")){
+            ensg="ensm%";
+        }
+        Criteria criteria = this.session().createCriteria(this.persistClass);
+        // create the alias for genes
+        Criteria geneCrit = criteria.createAlias("ensg_accession", "ensg_accession");
+        geneCrit.add(Restrictions.like("ensg_accession", ensg));
+        return criteria.list();
+    }
+
 }
